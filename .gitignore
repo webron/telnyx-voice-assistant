@@ -1,0 +1,23 @@
+# Secrets
+.env
+.env.*
+
+# Private drafts — not part of the submission
+docs/email-stephen.md
+docs/email-solutions.md
+docs/private-notes.md
+
+# Interview prep — kept locally, not part of the submission
+docs/presentation-prep.md
+docs/build-log.md
+
+# Node
+node_modules/
+
+# Build receipts
+.archify/*/*.finalize.json
+.archify/*/*finalize-summary.json
+.archify/*/*delivery-pending.json
+
+# OS / editor
+.DS_Store

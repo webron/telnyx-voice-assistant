@@ -1,0 +1,14 @@
+name = "shelter-actors"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+
+[[actors]]
+binding = "SHELTER"
+type = "Shelter"
+
+[storage.kv.CACHE]
+id = "143ab59c-3b74-422e-8c5e-33469877515b"
+
+[edge_compute]
+func_id = "3ba87ec4-8b89-4d19-85da-3ecc64aefca6"
+func_name = "shelter-actors"

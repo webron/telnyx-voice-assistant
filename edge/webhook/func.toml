@@ -1,0 +1,9 @@
+[edge_compute]
+func_id = "d69c4820-a8ea-4206-95d3-111c1a590882"
+func_name = "shelter-webhook"
+
+[telnyx]
+binding = "TELNYX_API"
+
+[storage.kv.CACHE]
+id = "143ab59c-3b74-422e-8c5e-33469877515b"

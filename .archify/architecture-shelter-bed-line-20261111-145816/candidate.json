@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Riverbend Shelter Bed Line \u2014 Architecture",
+    "output": ".archify/architecture-shelter-bed-line-20261111-145816/shelter-bed-line.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    {
+      "id": "caller",
+      "type": "external",
+      "label": "Caller",
+      "sublabel": "Verified number",
+      "pos": [
+        40,
+        210
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "assistant",
+      "type": "backend",
+      "label": "AI Assistant",
+      "sublabel": "Workflow \u00b7 8 nodes \u00b7 GLM-5.3-Flash",
+      "pos": [
+        260,
+        210
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "tag": "Speak nodes verbatim \u00b7 variable edges"
+    },
+    {
+      "id": "dvwebhook",
+      "type": "cloud",
+      "label": "shelter-webhook",
+      "sublabel": "Edge Function \u00b7 signed DV lookup",
+      "pos": [
+        510,
+        60
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "kv",
+      "type": "database",
+      "label": "shelter-cache (KV)",
+      "sublabel": "index \u00b7 snapshots \u00b7 hold cache \u00b7 flags",
+      "pos": [
+        730,
+        60
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "mcp",
+      "type": "cloud",
+      "label": "shelter-mcp2",
+      "sublabel": "Edge Function \u00b7 MCP server \u00b7 8 tools",
+      "pos": [
+        510,
+        350
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "shim",
+      "type": "cloud",
+      "label": "shelter-actors",
+      "sublabel": "owner \u00b7 REST shim",
+      "pos": [
+        730,
+        350
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "shelterActor",
+      "type": "backend",
+      "label": "Shelter Actor",
+      "sublabel": "Stateful Actor \u00b7 holds \u00b7 alarm",
+      "pos": [
+        930,
+        350
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "tag": "Single-threaded RMW"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Telnyx Edge Compute",
+      "wraps": [
+        "dvwebhook",
+        "kv",
+        "mcp",
+        "shim",
+        "shelterActor"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "caller-to-assistant",
+      "from": "caller",
+      "to": "assistant",
+      "label": "voice call",
+      "variant": "emphasis"
+    },
+    {
+      "id": "assistant-to-dv",
+      "from": "assistant",
+      "to": "dvwebhook",
+      "label": "signed DV lookup at call start",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "dv-to-kv",
+      "from": "dvwebhook",
+      "to": "kv",
+      "label": "read index / state \u00b7 write snapshots, holds, flags"
+    },
+    {
+      "id": "assistant-to-mcp",
+      "from": "assistant",
+      "to": "mcp",
+      "label": "MCP tools \u00b7 streamable HTTP",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "mcp-to-shim",
+      "from": "mcp",
+      "to": "shim",
+      "label": "REST /hold /extend /cancel /state"
+    },
+    {
+      "id": "shim-to-actor",
+      "from": "shim",
+      "to": "shelterActor",
+      "label": "actor RPC \u00b7 idFromName()"
+    },
+    {
+      "id": "actor-to-kv",
+      "from": "shelterActor",
+      "to": "kv",
+      "label": "publish snapshots (directions) \u00b7 hold cache",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "right",
+      "via": [
+        [
+          1090,
+          190
+        ],
+        [
+          960,
+          190
+        ]
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Edge Compute",
+      "items": [
+        "3 Edge Functions: signed DV lookup, MCP server (8 tools), actor owner with REST shim",
+        "KV: shelter index, availability snapshots with directions, hold cache, emergency flag"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Stateful core",
+      "items": [
+        "Shelter actor: single-threaded holds \u2014 the last-bed race is the lock case",
+        "Alarm frees expired beds back to the pool",
+        "REST shim decouples tools from actor ownership"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Safety & access",
+      "items": [
+        "Trial tier: inbound only from the verified number",
+        "Verbatim 9-8-8 / 9-1-1 speak node on the crisis path"
+      ]
+    }
+  ]
+}

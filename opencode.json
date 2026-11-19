@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "telnyx/zai-org/GLM-5.3-Flash",
+  "permission": {
+    "bash": {
+      "npm install*": "allow",
+      "npm ci*": "allow",
+      "npm create*": "allow",
+      "npx *": "allow",
+      "bun add*": "allow",
+      "bun x*": "allow",
+      "bun pm*": "allow",
+      "uv *": "allow",
+      "uvx *": "allow",
+      "pip install*": "allow",
+      "pip3 install*": "allow",
+      "brew install*": "allow",
+      "cargo install*": "allow",
+      "go install*": "allow",
+      "telnyx-edge*": "allow"
+    }
+  }
+}

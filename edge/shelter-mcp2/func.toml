@@ -1,0 +1,6 @@
+[edge_compute]
+func_id = "74011fac-b501-42e9-a16c-9c95f8dc147b"
+func_name = "shelter-mcp2"
+
+[storage.kv.CACHE]
+id = "143ab59c-3b74-422e-8c5e-33469877515b"

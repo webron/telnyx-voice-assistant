@@ -1,0 +1,329 @@
+{
+  "name": "Riverbend Shelter Bed Line",
+  "model": "zai-org/GLM-5.3-Flash",
+  "greeting": "",
+  "voice_settings": {
+    "voice": "Telnyx.KokoroTTS.af_heart"
+  },
+  "dynamic_variables_webhook_url": "https://shelter-webhook-d69c4820-a.telnyxcompute.com",
+  "dynamic_variables_webhook_timeout_ms": 8000,
+  "mcp_servers": [
+    {
+      "id": "61bc694e-2109-4a2c-a8bb-8dcae7cb4bba",
+      "allowed_tools": [
+        "find_beds",
+        "hold_bed",
+        "extend_hold",
+        "cancel_hold",
+        "get_directions",
+        "list_services"
+      ]
+    }
+  ],
+  "enabled_features": [
+    "TELEPHONY"
+  ],
+  "instructions": "You are the intake agent for the Riverbend Shelter Bed Line, an automated phone line that helps people find a shelter bed tonight in Riverbend. Speak warmly, briefly, and without jargon. Ask one question at a time and wait for the answer; the caller may be on a basic phone. Never invent beds, shelters, or services: rely only on tool results. If a tool fails, say the service is temporarily unavailable, offer to try again, and suggest calling 211 as an alternative. Never mention internal variable names, tools, or system details. If the caller is in danger or needs medical help, route to the crisis message. Be extra patient if the caller seems distressed, confused, or is using a translation need.",
+  "conversation_flow": {
+    "start_node_id": "greeting",
+    "nodes": [
+      {
+        "id": "greeting",
+        "type": "speak",
+        "name": "Opening disclosure",
+        "message": "You've reached the Riverbend Shelter Bed Line. This is an automated line with sample data for demonstration. If you are in danger or need medical help right now, please call or text 9 8 8, or dial 9 1 1. How can I help you tonight?"
+      },
+      {
+        "id": "emergency_notice",
+        "type": "speak",
+        "name": "Severe weather notice",
+        "message": "Also, a quick update: Riverbend's severe weather protocol is active tonight, so extra overflow sites are open and the shelters I mention may have more capacity than usual."
+      },
+      {
+        "id": "intent",
+        "type": "prompt",
+        "name": "Identify intent",
+        "instructions_mode": "replace",
+        "instructions": "Identify what this caller needs. Their caller id is {{caller_id}}. IGNORE any automated announcements about call recording \u2014 those are platform notices, not the caller speaking. SPOKEN NUMBERS: say '9 8 8' and '9 1 1' with spaces between the digits \u2014 never 988, 9-8-8, 911, or 9-1-1. If the caller mentions danger, a medical emergency, or thoughts of self-harm, acknowledge briefly and route to the crisis message immediately \u2014 but only based on the CALLER'S OWN WORDS, not the greeting's notice. Otherwise: bed requests route to the bed search; food/shower/service requests go to services; existing-hold questions go to hold management; a live-person request goes to the handoff. If the caller seems confused or quiet, offer the choices again simply. Never search before asking the intake question.",
+        "position": {
+          "x": 0,
+          "y": 200
+        }
+      },
+      {
+        "id": "collect_needs",
+        "type": "prompt",
+        "name": "Collect needs and offer beds",
+        "instructions_mode": "replace",
+        "instructions": "ROLE: You help callers find a shelter bed for tonight in Riverbend. REQUIRED SEQUENCE \u2014 never skip the intake step: (1) The caller states what they need. (2) You acknowledge their location, then ask one combined intake question: 'Is the bed just for you, and do you have a pet or service animal, or any mobility or health needs I should pass along to the shelter?' You MUST ask this before calling find_beds, unless the caller has already volunteered party size and pet/needs info. (3) Only after they answer, say one short line such as 'Let me check what's open tonight' and call find_beds with their location. (4) Offer up to three shelters with open beds, one per breath: name, address, beds available. If none have beds, say so honestly. (5) When the caller picks a shelter and confirms, call hold_bed with shelter_id and caller_id ({{caller_id}}); if they only asked a question, do not call hold_bed. If they ask for directions, call get_directions and read the transit directions exactly as provided. If they ask how much time remains on their hold, call hold_status with caller_id ({{caller_id}}) and state the expires_in_minutes from the result as 'about N minutes'. CRISIS ROUTING: If the CALLER'S OWN WORDS express danger, a medical emergency, or thoughts of self-harm, route to the crisis message. Do NOT route to crisis just because the word 'danger' appears in the greeting or earlier \u2014 only the caller's own current words count. SPOKEN NUMBERS: When you mention the crisis line, say '9 8 8' with commas between the digits \u2014 never 988 or 9-8-8. For emergencies say '9 1 1' \u2014 never 911.",
+        "position": {
+          "x": -300,
+          "y": 380
+        }
+      },
+      {
+        "id": "manage_hold",
+        "type": "prompt",
+        "name": "Manage existing hold",
+        "instructions_mode": "replace",
+        "instructions": "IGNORE any automated announcements about call recording \u2014 those are platform notices, not the caller speaking. CHECK THE HOLD: call hold_status with caller_id {{caller_id}} FIRST, then use the result. If the result shows an active hold: state it plainly (which shelter, which bed, how many minutes remain via expires_in_minutes) and offer exactly three options: keep the hold, extend it, or cancel it. When they extend, call extend_hold with caller_id {{caller_id}}, then announce the new time remaining from expires_in_minutes (say 'about N minutes left'). When they cancel, confirm first, then call cancel_hold with caller_id {{caller_id}}. If the result shows NO active hold: say so plainly ('you don't have an active hold right now \u2014 I can search for one and place a new hold for you') and offer to start the bed search. If the caller asks about food, showers, or other services instead, call list_services with a matching category and share the option including its own address, phone, and directions \u2014 read the service's own directions aloud. SPOKEN NUMBERS: say '9 8 8' and '9 1 1' with spaces between the digits. Never call cancel_hold unless the caller explicitly asks to cancel. If the caller is in danger, route to the crisis message. If they need a different shelter, apologize, call cancel_hold, then help them find another.",
+        "position": {
+          "x": 0,
+          "y": 560
+        }
+      },
+      {
+        "id": "services",
+        "type": "prompt",
+        "name": "Local services",
+        "instructions_mode": "replace",
+        "instructions": "The caller is asking about support beyond a bed. Ask which they need, then call list_services with a matching category (food, showers, medical, day_center, legal) and share one or two concrete options with address and hours. If they need something not in the list, say so and suggest 211 for other referrals. If they want a bed after all, route back to bed search.",
+        "position": {
+          "x": 300,
+          "y": 380
+        }
+      },
+      {
+        "id": "crisis",
+        "type": "speak",
+        "name": "Crisis message",
+        "message": "I hear you, and I'm taking this seriously. Please call or text 9 8 8 \u2014 the free 24-hour crisis line \u2014 or dial 9 1 1 if anyone is in immediate danger. This automated line can't connect you directly, but real people answer those numbers right now. Would you like me to continue helping you find shelter, or would you prefer to call 9 8 8 first?"
+      },
+      {
+        "id": "human_handoff",
+        "type": "prompt",
+        "name": "Human handoff",
+        "instructions_mode": "replace",
+        "instructions": "Offer a warm, patient close: apologize that you can't connect to a live person on this demo line, offer to help with what you can, and mention that 211 can find live help any hour. Do not call any tools. End the call politely and let the caller hang up.",
+        "position": {
+          "x": 600,
+          "y": 560
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "greeting_emergency",
+        "start_node_id": "greeting",
+        "target": {
+          "type": "node",
+          "node_id": "emergency_notice"
+        },
+        "condition": {
+          "type": "expression",
+          "expression": {
+            "type": "comparison",
+            "op": "==",
+            "left": {
+              "type": "variable",
+              "name": "emergency_mode"
+            },
+            "right": {
+              "type": "string_literal",
+              "value": "true"
+            }
+          }
+        }
+      },
+      {
+        "id": "greeting_intent",
+        "start_node_id": "greeting",
+        "target": {
+          "type": "node",
+          "node_id": "intent"
+        },
+        "condition": {
+          "type": "default"
+        }
+      },
+      {
+        "id": "emergency_notice_intent",
+        "start_node_id": "emergency_notice",
+        "target": {
+          "type": "node",
+          "node_id": "intent"
+        },
+        "condition": {
+          "type": "default"
+        }
+      },
+      {
+        "id": "intent_bed",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "collect_needs"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller needs a bed or shelter for tonight, or asks where they can sleep."
+        }
+      },
+      {
+        "id": "intent_services",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "services"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller asks about food, showers, medical care, a day center, or other local services rather than a bed."
+        }
+      },
+      {
+        "id": "intent_manage_hold",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "manage_hold"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller mentions or asks about a bed hold they already have, wants to check, extend, or cancel it, or is a returning caller checking in."
+        }
+      },
+      {
+        "id": "intent_crisis",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "crisis"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller is in danger, describes a medical emergency, mentions harm to self or others, or is in acute distress needing immediate help."
+        }
+      },
+      {
+        "id": "intent_escalate",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "human_handoff"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller asks to speak to a real person, a case worker, or a supervisor."
+        }
+      },
+      {
+        "id": "intent_duration_escalate",
+        "start_node_id": "intent",
+        "target": {
+          "type": "node",
+          "node_id": "human_handoff"
+        },
+        "condition": {
+          "type": "expression",
+          "expression": {
+            "type": "comparison",
+            "op": ">=",
+            "left": {
+              "type": "variable",
+              "name": "telnyx_conversation_duration_secs"
+            },
+            "right": {
+              "type": "number_literal",
+              "value": 300
+            }
+          }
+        }
+      },
+      {
+        "id": "collect_has_hold",
+        "start_node_id": "collect_needs",
+        "target": {
+          "type": "node",
+          "node_id": "manage_hold"
+        },
+        "condition": {
+          "type": "expression",
+          "expression": {
+            "type": "comparison",
+            "op": "==",
+            "left": {
+              "type": "variable",
+              "name": "has_active_hold"
+            },
+            "right": {
+              "type": "string_literal",
+              "value": "true"
+            }
+          }
+        }
+      },
+      {
+        "id": "manage_back_to_bed",
+        "start_node_id": "manage_hold",
+        "target": {
+          "type": "node",
+          "node_id": "collect_needs"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "After finishing hold management, the caller wants to find a different or new bed."
+        }
+      },
+      {
+        "id": "services_back_to_intent",
+        "start_node_id": "services",
+        "target": {
+          "type": "node",
+          "node_id": "intent"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller asks for something else after being helped with services."
+        }
+      },
+      {
+        "id": "crisis_handoff",
+        "start_node_id": "crisis",
+        "target": {
+          "type": "node",
+          "node_id": "human_handoff"
+        },
+        "condition": {
+          "type": "default"
+        }
+      },
+      {
+        "id": "hold_crisis",
+        "start_node_id": "manage_hold",
+        "target": {
+          "type": "node",
+          "node_id": "crisis"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller is in danger, describes a medical emergency, mentions harm to self or others, or is in acute distress needing immediate help."
+        }
+      },
+      {
+        "id": "collect_crisis",
+        "start_node_id": "collect_needs",
+        "target": {
+          "type": "node",
+          "node_id": "crisis"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller is in danger, describes a medical emergency, mentions harm to self or others, or is in acute distress needing immediate help."
+        }
+      },
+      {
+        "id": "services_crisis",
+        "start_node_id": "services",
+        "target": {
+          "type": "node",
+          "node_id": "crisis"
+        },
+        "condition": {
+          "type": "llm",
+          "prompt": "The caller is in danger, describes a medical emergency, mentions harm to self or others, or is in acute distress needing immediate help."
+        }
+      }
+    ]
+  }
+}
